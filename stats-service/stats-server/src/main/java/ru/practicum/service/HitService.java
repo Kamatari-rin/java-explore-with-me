@@ -1,7 +1,6 @@
 package ru.practicum.service;
 
 import ru.practicum.dto.GetStatsDto;
-import ru.practicum.dto.HitResponseDto;
 import ru.practicum.entity.HitEntity;
 
 import java.time.LocalDateTime;

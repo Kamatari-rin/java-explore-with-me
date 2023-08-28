@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.GetStatsDto;
-import ru.practicum.dto.HitResponseDto;
 import ru.practicum.entity.HitEntity;
-import ru.practicum.mapper.HitMapper;
 import ru.practicum.repository.HitRepository;
 
 import java.time.LocalDateTime;
