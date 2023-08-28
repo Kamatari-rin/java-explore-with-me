@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.HitRequestDto;
 import ru.practicum.dto.GetStatsDto;
-import ru.practicum.dto.HitResponseDto;
-import ru.practicum.entity.HitEntity;
 import ru.practicum.mapper.HitMapper;
 import ru.practicum.service.HitService;
 
