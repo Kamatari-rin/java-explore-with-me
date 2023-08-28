@@ -13,7 +13,7 @@ public class GetStatsDto {
 
     private String app;
     private String uri;
-    private Long hits;
+    private long hits;
 
     public GetStatsDto(String app, String uri, Long hits) {
         this.app = app;

@@ -40,8 +40,8 @@ public class StatsServerController {
     }
 
     @PostMapping("/hit")
-    public ResponseEntity<HitResponseDto> saveHit(@RequestBody @Valid HitRequestDto hitRequestDto) {
-        HitEntity hit = hitService.save(hitMapper.toHitEntity(hitRequestDto));
-        return new ResponseEntity<>(hitMapper.toHitResponseDto(hit), HttpStatus.OK);
+    @ResponseStatus(HttpStatus.CREATED)
+    public void saveHit(@RequestBody @Valid HitRequestDto hitRequestDto) {
+        hitService.save(hitMapper.toHitEntity(hitRequestDto));
     }
 }

@@ -9,7 +9,7 @@ import java.util.Set;
 
 public interface HitService {
 
-    HitEntity save(HitEntity hitEntity);
+    void save(HitEntity hitEntity);
 
     List<GetStatsDto> getStats(LocalDateTime start, LocalDateTime end, Set<String> uriSet, boolean unique);
 }

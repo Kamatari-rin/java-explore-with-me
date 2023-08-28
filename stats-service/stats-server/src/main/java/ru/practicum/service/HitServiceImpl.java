@@ -21,6 +21,7 @@ public class HitServiceImpl implements HitService {
     private final HitRepository hitRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<GetStatsDto> getStats(LocalDateTime start, LocalDateTime end, Set<String> uriSet, boolean unique) {
         if (unique) {
             return hitRepository.findStatsBetweenTimestampUniqUri(uriSet, start, end);
@@ -30,9 +31,7 @@ public class HitServiceImpl implements HitService {
     }
 
     @Override
-    public HitEntity save(HitEntity hitEntity) {
-        return hitRepository.save(hitEntity);
+    public void save(HitEntity hitEntity) {
+        hitRepository.save(hitEntity);
     }
-
-
 }
