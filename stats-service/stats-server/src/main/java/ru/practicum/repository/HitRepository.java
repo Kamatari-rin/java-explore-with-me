@@ -15,20 +15,20 @@ public interface HitRepository extends JpaRepository<HitEntity, Long> {
     @Query("SELECT new ru.practicum.dto.GetStatsDto(hit.app, hit.uri, count(distinct hit.ip)) " +
            "FROM HitEntity hit " +
            "WHERE hit.timestamp BETWEEN :start AND :end " +
-           "AND hit.uri IN :uris " +
+           "AND (COALESCE(:uris, null) IS NULL OR hit.uri IN :uris) " +
            "GROUP BY hit.app, hit.uri " +
-           "ORDER BY count(hit.ip) DESC")
-    List<GetStatsDto> findByTimestampBetweenAndCountUniqUri(@Param("uris") Set<String> uris,
+           "ORDER BY count(distinct hit.ip) DESC")
+    List<GetStatsDto> findStatsBetweenTimestampUniqUri(@Param("uris") Set<String> uris,
                                                             @Param("start") LocalDateTime start,
                                                             @Param("end") LocalDateTime end);
 
     @Query("SELECT new ru.practicum.dto.GetStatsDto(hit.app, hit.uri, count(hit.ip)) " +
             "FROM HitEntity hit " +
             "WHERE hit.timestamp BETWEEN :start AND :end " +
-            "AND hit.uri IN :uris " +
+            "AND (COALESCE(:uris, null) IS NULL OR hit.uri IN :uris) " +
             "GROUP BY hit.app, hit.uri " +
             "ORDER BY count(hit.ip) DESC")
-    List<GetStatsDto> findByTimestampBetweenAndCountUri(@Param("uris") Set<String> uris,
-                                                            @Param("start") LocalDateTime start,
-                                                            @Param("end") LocalDateTime end);
+    List<GetStatsDto> findStatsBetweenTimestampNotUniqUri(@Param("uris") Set<String> uris,
+                                                        @Param("start") LocalDateTime start,
+                                                        @Param("end") LocalDateTime end);
 }

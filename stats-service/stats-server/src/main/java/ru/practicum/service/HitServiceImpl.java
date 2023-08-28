@@ -23,11 +23,9 @@ public class HitServiceImpl implements HitService {
     @Override
     public List<GetStatsDto> getStats(LocalDateTime start, LocalDateTime end, Set<String> uriSet, boolean unique) {
         if (unique) {
-            List<GetStatsDto> list = hitRepository.findByTimestampBetweenAndCountUniqUri(uriSet, start, end);
-            return list;
+            return hitRepository.findStatsBetweenTimestampUniqUri(uriSet, start, end);
         } else {
-            List<GetStatsDto> list2 = hitRepository.findByTimestampBetweenAndCountUri(uriSet, start, end);
-            return list2;
+            return hitRepository.findStatsBetweenTimestampNotUniqUri(uriSet, start, end);
         }
     }
 
