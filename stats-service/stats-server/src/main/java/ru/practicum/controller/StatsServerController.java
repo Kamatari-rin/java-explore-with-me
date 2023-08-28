@@ -18,7 +18,6 @@ import java.util.Set;
 
 import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 
-@Slf4j
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
@@ -31,10 +30,10 @@ public class StatsServerController {
     public ResponseEntity<List<GetStatsDto>> getStats(
             @RequestParam @DateTimeFormat(pattern = TIMESTAMP_PATTERN) LocalDateTime start,
             @RequestParam @DateTimeFormat(pattern = TIMESTAMP_PATTERN) LocalDateTime end,
-            @RequestParam(required = false) Set<String> uriSet,
-            @RequestParam(defaultValue = "false") boolean unique) {
+            @RequestParam(required = false) Set<String> uris,
+            @RequestParam(defaultValue = "false") Boolean unique) {
 
-        return new ResponseEntity<>(hitService.getStats(start, end, uriSet, unique), HttpStatus.OK);
+        return new ResponseEntity<>(hitService.getStats(start, end, uris, unique), HttpStatus.OK);
     }
 
     @PostMapping("/hit")
