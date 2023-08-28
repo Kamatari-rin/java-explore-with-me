@@ -30,7 +30,6 @@ public class HitServiceImpl implements HitService {
             return list;
         } else {
             List<GetStatsDto> list2 = hitRepository.findByTimestampBetweenAndCountUri(uriSet, start, end);
-            log.info(list2.toString());
             return list2;
         }
     }
