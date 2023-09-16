@@ -1,23 +1,16 @@
 package ru.practicum.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
-@Setter
 @Builder(toBuilder = true)
 public class GetStatsDto {
 
     private String app;
-    private String uri;
-    private long hits;
 
-    public GetStatsDto(String app, String uri, Long hits) {
-        this.app = app;
-        this.uri = uri;
-        this.hits = hits;
-    }
+    private String uri;
+
+    private long hits;
 }
