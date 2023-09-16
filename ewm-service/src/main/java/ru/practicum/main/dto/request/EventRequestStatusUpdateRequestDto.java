@@ -14,6 +14,7 @@ import java.util.Set;
 public class EventRequestStatusUpdateRequestDto {
 
     private Set<Long> requestIds;
+
     private RequestUpdateStatus status;
 
     public enum RequestUpdateStatus {

@@ -55,6 +55,7 @@ public class EventServiceImpl implements EventService {
     private String app;
 
 ///////////////////////////////////////////////// ADMIN SERVICE ////////////////////////////////////////////////////////
+
     @Override
     @Transactional(readOnly = true)
     public List<EventFullDto> getEventsByAdmin(Set<Long> userIds,
@@ -103,7 +104,9 @@ public class EventServiceImpl implements EventService {
 
         return mapToEventFullDto(List.of(event)).get(0);
     }
+
 ///////////////////////////////////////////////// PUBLIC SERVICE ////////////////////////////////////////////////////////
+
     @Override
     @Transactional(readOnly = true)
     public List<EventShortDto> getAllForPublic(String text,
@@ -142,6 +145,7 @@ public class EventServiceImpl implements EventService {
         statsClient.saveStats(app, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
         return mapToEventFullDto(List.of(event)).get(0);
     }
+
 ///////////////////////////////////////////////// PRIVATE SERVICE //////////////////////////////////////////////////////
 
     @Override
@@ -196,7 +200,9 @@ public class EventServiceImpl implements EventService {
         locationRepository.save(savedEvent.getLocation());
         return mapToEventFullDto(List.of(savedEvent)).get(0);
     }
+
 ///////////////////////////////////////////////// UTILITY METHODS //////////////////////////////////////////////////////
+
     private Event getEventOrThrowException(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(notFoundException("Event {eventId} not found", eventId)
