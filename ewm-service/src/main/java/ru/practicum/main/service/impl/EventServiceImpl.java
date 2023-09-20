@@ -20,7 +20,10 @@ import ru.practicum.main.entity.enums.EventStatus;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.mapper.EventMapper;
 import ru.practicum.main.mapper.LocationMapper;
-import ru.practicum.main.repository.*;
+import ru.practicum.main.repository.CategoryRepository;
+import ru.practicum.main.repository.EventRepository;
+import ru.practicum.main.repository.LocationRepository;
+import ru.practicum.main.repository.UserRepository;
 import ru.practicum.main.service.EventService;
 import ru.practicum.main.util.Pagination;
 
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 import static ru.practicum.main.entity.enums.EventStatus.*;
+import static ru.practicum.main.entity.enums.StateAction.*;
 import static ru.practicum.main.exception.NotFoundException.notFoundException;
 
 @Service
@@ -76,11 +80,11 @@ public class EventServiceImpl implements EventService {
 
         if (dto.getStateAction() != null) {
             if (event.getState().equals(PENDING)) {
-                if (dto.getStateAction().equals(UpdateEventDto.StateAction.PUBLISH_EVENT)) {
+                if (dto.getStateAction().equals(PUBLISH_EVENT)) {
                     event.setState(PUBLISHED);
                     event.setPublishedOn(LocalDateTime.now());
                 }
-                if (dto.getStateAction().equals(UpdateEventDto.StateAction.REJECT_EVENT)) {
+                if (dto.getStateAction().equals(REJECT_EVENT)) {
                     event.setState(CANCELED);
                 }
             } else {

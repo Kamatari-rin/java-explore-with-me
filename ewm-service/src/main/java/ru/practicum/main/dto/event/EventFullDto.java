@@ -21,6 +21,9 @@ import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 @NoArgsConstructor
 public class EventFullDto {
 
+    @Schema(description = "Идентификатор",
+            type = "integer",
+            example = "1")
     private Long id;
 
     @Schema(description = "Краткое описание",
@@ -28,6 +31,7 @@ public class EventFullDto {
             example = "Эксклюзивность нашего шоу гарантирует привлечение максимальной зрительской аудитории")
     private String annotation;
 
+    @Schema(implementation = CategoryDto.class)
     private CategoryDto category;
 
     @Schema(description = "Дата и время создания события (в формате \"yyyy-MM-dd HH:mm:ss\")",
