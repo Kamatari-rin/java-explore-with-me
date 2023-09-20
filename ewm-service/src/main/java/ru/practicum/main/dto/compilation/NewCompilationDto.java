@@ -14,10 +14,10 @@ import java.util.Set;
 @NoArgsConstructor
 public class NewCompilationDto {
 
-    private Set<Long> events;
-
     private boolean pinned;
 
     @NotBlank
     private String title;
+
+    private Set<Long> events;
 }

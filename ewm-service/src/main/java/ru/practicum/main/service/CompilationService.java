@@ -12,7 +12,7 @@ public interface CompilationService {
 
     CompilationDto update(Long compId, UpdateCompilationRequest updateCompilation);
 
-    String delete(Long compId);
+    Boolean delete(Long compId);
 
     List<CompilationDto> getAll(Boolean pinned, Integer from, Integer size);
 

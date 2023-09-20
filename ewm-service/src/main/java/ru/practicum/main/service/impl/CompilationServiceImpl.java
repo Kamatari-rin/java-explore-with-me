@@ -67,10 +67,10 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public String delete(Long compId) {
+    public Boolean delete(Long compId) {
         Compilation compilation = getCompilation(compId);
         compilationRepository.delete(compilation);
-        return "The Compilation was successfully deleted.";
+        return true;
     }
 
     @Override

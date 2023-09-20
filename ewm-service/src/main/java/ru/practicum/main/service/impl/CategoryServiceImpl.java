@@ -62,12 +62,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public String delete(Long catId) {
+    public Boolean delete(Long catId) {
         Category category = getCategory(catId);
 
         try {
             categoryRepository.delete(category);
-            return "The category was successfully deleted";
+            return true;
         } catch (Exception e) {
             throw new ValidationException("The category isn't empty");
         }

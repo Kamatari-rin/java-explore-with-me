@@ -34,7 +34,7 @@ public class AdminCompilationController {
     }
 
     @DeleteMapping("/{compId}")
-    public ResponseEntity<String> deleteById(@Positive @PathVariable Long compId) {
+    public ResponseEntity<Boolean> deleteById(@Positive @PathVariable Long compId) {
         return new ResponseEntity<>(compilationService.delete(compId), HttpStatus.NO_CONTENT);
     }
 }

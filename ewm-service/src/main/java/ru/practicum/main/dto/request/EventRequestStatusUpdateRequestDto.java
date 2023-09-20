@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.main.entity.enums.RequestUpdateStatus;
 
 import java.util.Set;
 
@@ -16,9 +17,4 @@ public class EventRequestStatusUpdateRequestDto {
     private Set<Long> requestIds;
 
     private RequestUpdateStatus status;
-
-    public enum RequestUpdateStatus {
-        CONFIRMED,
-        REJECTED
-    }
 }

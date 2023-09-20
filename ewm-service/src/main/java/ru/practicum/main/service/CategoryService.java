@@ -15,5 +15,5 @@ public interface CategoryService {
 
     CategoryDto update(Long id, CategoryDto categoryDto);
 
-    String delete(Long id);
+    Boolean delete(Long id);
 }

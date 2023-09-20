@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.main.dto.location.LocationDtoCoordinates;
+import ru.practicum.main.entity.enums.StateAction;
 
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
@@ -35,11 +36,4 @@ public class UpdateEventDto {
     private String title;
 
     private StateAction stateAction;
-
-    public enum StateAction {
-        PUBLISH_EVENT,
-        REJECT_EVENT,
-        SEND_TO_REVIEW,
-        CANCEL_REVIEW
-    }
 }
