@@ -27,7 +27,7 @@ public class EventFullDto {
     private Long id;
 
     @Schema(description = "Краткое описание",
-            type = "string"                                                                        ,
+            type = "string",
             example = "Эксклюзивность нашего шоу гарантирует привлечение максимальной зрительской аудитории")
     private String annotation;
 
@@ -35,20 +35,20 @@ public class EventFullDto {
     private CategoryDto category;
 
     @Schema(description = "Дата и время создания события (в формате \"yyyy-MM-dd HH:mm:ss\")",
-            type = "string"                                                                        ,
+            type = "string",
             example = "2022-09-06 11:00:23")
     @JsonFormat(pattern = TIMESTAMP_PATTERN)
     private LocalDateTime createdOn;
 
     @Schema(description = "Полное описание события",
-            type = "string"                                                                        ,
+            type = "string",
             example = "Что получится, если соединить кукурузу и полёт? Создатели " +
                     "\"Шоу летающей кукурузы\" испытали эту идею на практике и воплотили в жизнь " +
                     "инновационный проект, предлагающий свежий взгляд на развлечения...")
     private String description;
 
     @Schema(description = "Дата и время на которые намечено событие (в формате \"yyyy-MM-dd HH:mm:ss\")",
-            type = "string"                                                                        ,
+            type = "string",
             example = "2024-12-31 15:10:05")
     @JsonFormat(pattern = TIMESTAMP_PATTERN)
     private LocalDateTime eventDate;
@@ -60,18 +60,18 @@ public class EventFullDto {
     private LocationDtoCoordinates location;
 
     @Schema(description = "Нужно ли оплачивать участие",
-            type = "boolean"                                                                        ,
+            type = "boolean",
             example = "true")
     private Boolean paid;
 
     @Schema(description = "Ограничение на количество участников. Значение 0 - означает отсутствие ограничения",
-            type = "integer"                                                                        ,
+            type = "integer",
             example = "10",
             defaultValue = "0")
     private Long participantLimit;
 
     @Schema(description = "Дата и время публикации события (в формате \"yyyy-MM-dd HH:mm:ss\")",
-            type = "string"                                                                        ,
+            type = "string",
             example = "2022-09-06 15:10:05")
     @JsonFormat(pattern = TIMESTAMP_PATTERN)
     private LocalDateTime publishedOn;
@@ -93,7 +93,7 @@ public class EventFullDto {
     private EventStatus state;
 
     @Schema(description = "Заголовок",
-            type = "string"                                                                        ,
+            type = "string",
             example = "Знаменитое шоу 'Летающая кукуруза'")
     private String title;
 
