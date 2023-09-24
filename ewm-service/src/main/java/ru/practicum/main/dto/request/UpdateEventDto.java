@@ -1,5 +1,6 @@
 package ru.practicum.main.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,8 @@ import ru.practicum.main.entity.enums.StateAction;
 
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
+
+import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 
 @Data
 @Builder(toBuilder = true)
@@ -22,6 +25,7 @@ public class UpdateEventDto {
 
     private String description;
 
+    @JsonFormat(pattern = TIMESTAMP_PATTERN)
     private LocalDateTime eventDate;
 
     private LocationDtoCoordinates location;

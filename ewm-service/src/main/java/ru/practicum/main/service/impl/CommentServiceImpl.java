@@ -99,19 +99,19 @@ public class CommentServiceImpl implements CommentService {
 
     private Comment getCommentOrThrowException(Long commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(notFoundException("Comment {} not found", commentId)
+                .orElseThrow(notFoundException("Comment {0} not found", commentId)
                 );
     }
 
     private Event getEventOrThrowException(Long eventId) {
         return eventRepository.findById(eventId)
-                .orElseThrow(notFoundException("Event {} not found", eventId)
+                .orElseThrow(notFoundException("Event {0} not found", eventId)
                 );
     }
 
     private User getUserOrThrowException(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(notFoundException("User {} not found.", userId)
+                .orElseThrow(notFoundException("User {0} not found.", userId)
                 );
     }
 }

@@ -11,19 +11,14 @@ import ru.practicum.main.dto.event.EventFullDto;
 import ru.practicum.main.dto.event.EventShortDto;
 import ru.practicum.main.dto.event.NewEventDto;
 import ru.practicum.main.dto.request.UpdateEventDto;
-import ru.practicum.main.entity.Category;
-import ru.practicum.main.entity.Event;
-import ru.practicum.main.entity.Location;
-import ru.practicum.main.entity.User;
+import ru.practicum.main.entity.*;
 import ru.practicum.main.entity.enums.EventSort;
 import ru.practicum.main.entity.enums.EventStatus;
+import ru.practicum.main.entity.enums.RequestStatus;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.mapper.EventMapper;
 import ru.practicum.main.mapper.LocationMapper;
-import ru.practicum.main.repository.CategoryRepository;
-import ru.practicum.main.repository.EventRepository;
-import ru.practicum.main.repository.LocationRepository;
-import ru.practicum.main.repository.UserRepository;
+import ru.practicum.main.repository.*;
 import ru.practicum.main.service.EventService;
 import ru.practicum.main.util.Pagination;
 
@@ -36,7 +31,8 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 import static ru.practicum.main.entity.enums.EventStatus.*;
-import static ru.practicum.main.entity.enums.StateAction.*;
+import static ru.practicum.main.entity.enums.StateAction.PUBLISH_EVENT;
+import static ru.practicum.main.entity.enums.StateAction.REJECT_EVENT;
 import static ru.practicum.main.exception.NotFoundException.notFoundException;
 
 @Service
@@ -48,6 +44,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
+    private final RequestRepository requestRepository;
 
     private final StatsClient statsClient;
 
@@ -208,19 +205,19 @@ public class EventServiceImpl implements EventService {
 
     private Event getEventOrThrowException(Long eventId) {
         return eventRepository.findById(eventId)
-                .orElseThrow(notFoundException("Event {eventId} not found", eventId)
+                .orElseThrow(notFoundException("Event {0} not found", eventId)
         );
     }
 
     private User getUserOrThrowException(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(notFoundException("User {userId} not found.", userId)
+                .orElseThrow(notFoundException("User {0} not found.", userId)
         );
     }
 
     private Category getCategoryOrThrowException(Long catId) {
         return categoryRepository.findById(catId)
-                .orElseThrow(notFoundException("Category {catId} not found.", catId)
+                .orElseThrow(notFoundException("Category {0} not found.", catId)
         );
     }
 
@@ -272,9 +269,11 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         Map<Long, Integer> eventsViews = getViews(eventIds);
+        Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
 
         dtos.forEach(event -> {
             event.setViews(eventsViews.getOrDefault(event.getId(), 0));
+            event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0L));
         });
 
         return dtos;
@@ -290,9 +289,11 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         Map<Long, Integer> eventsViews = getViews(eventIds);
+        Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
 
-        dtos.forEach(el -> {
-            el.setViews(eventsViews.getOrDefault(el.getId(), 0));
+        dtos.forEach(event -> {
+            event.setViews(eventsViews.getOrDefault(event.getId(), 0));
+            event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0L));
         });
 
         return dtos;
@@ -325,5 +326,16 @@ public class EventServiceImpl implements EventService {
             eventsId.forEach(el -> views.put(el, 0));
         }
         return views;
+    }
+
+    private Map<Long, Long> getConfirmedRequests(Collection<Long> eventsId) {
+        List<Request> confirmedRequests = requestRepository
+                .findAllByStatusAndEventIdIn(RequestStatus.CONFIRMED, eventsId);
+
+        return confirmedRequests.stream()
+                .collect(Collectors.groupingBy(request -> request.getEvent().getId()))
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> (long) e.getValue().size()));
     }
 }

@@ -84,7 +84,7 @@ public class RequestServiceImpl implements RequestService {
     public ParticipationRequestDto cancelEvent(Long userId, Long requestId) {
         getUserOrThrowException(userId);
         Request request = requestRepository.findById(requestId)
-                .orElseThrow(notFoundException("Request {requestId} not found", requestId));
+                .orElseThrow(notFoundException("Request {0} not found", requestId));
 
         if (!request.getRequester().getId().equals(userId)) {
             throw new ValidationException(
@@ -154,13 +154,13 @@ public class RequestServiceImpl implements RequestService {
 
     private User getUserOrThrowException(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(notFoundException("User {userId} not found.", userId)
+                .orElseThrow(notFoundException("User {0} not found.", userId)
                 );
     }
 
     private Event getEventOrThrowException(Long eventId) {
         return eventRepository.findById(eventId)
-                .orElseThrow(notFoundException("Event {eventId} not found", eventId)
+                .orElseThrow(notFoundException("Event {0} not found", eventId)
                 );
     }
 

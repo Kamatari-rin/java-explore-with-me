@@ -47,7 +47,7 @@ public class EventFullDto {
 
     private Boolean requestModeration;
 
-    private Integer confirmedRequests;
+    private Long confirmedRequests;
 
     private EventStatus state;
 

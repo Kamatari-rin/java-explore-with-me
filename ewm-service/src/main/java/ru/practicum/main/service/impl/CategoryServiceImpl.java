@@ -46,7 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getById(Long catId) {
         return categoryMapper.toCategoryDto(
                 categoryRepository.findById(catId)
-                        .orElseThrow(notFoundException("Category with id={catId} hasn't found", catId))
+                        .orElseThrow(notFoundException("Category with id={0} hasn't found", catId))
         );
     }
 
@@ -75,7 +75,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private Category getCategory(Long catId) {
         return categoryRepository.findById(catId)
-                .orElseThrow(notFoundException("Category with id={catId} hasn't found", catId)
+                .orElseThrow(notFoundException("Category with id={0} hasn't found", catId)
         );
     }
 }

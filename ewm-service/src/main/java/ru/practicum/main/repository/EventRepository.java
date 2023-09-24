@@ -4,6 +4,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.practicum.main.entity.Event;
 import ru.practicum.main.entity.enums.EventStatus;
 import ru.practicum.main.util.Pagination;
@@ -30,8 +31,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
            "AND (event.category.id IN :categories OR :categories IS NULL) " +
            "AND (event.initiator.id IN :users OR :users IS NULL) " +
            "AND (event.state IN :states OR :states IS NULL)")
-    List<Event> findAllForAdmin(Set<Long> users, Set<Long> categories, List<EventStatus> states,
-                                LocalDateTime rangeStart, PageRequest pageable);
+    List<Event> findAllForAdmin(Set<Long> users,
+                                Set<Long> categories,
+                                List<EventStatus> states,
+                                LocalDateTime rangeStart,
+                                PageRequest pageable);
 
     @Query("SELECT event " +
            "FROM Event AS event " +
@@ -49,9 +53,13 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                     "(UPPER(event.annotation) LIKE UPPER(CONCAT('%', :text, '%'))) " +
                     "OR (UPPER(event.description) LIKE UPPER(CONCAT('%', :text, '%'))) " +
                     "OR (UPPER(event.title) LIKE UPPER(CONCAT('%', :text, '%'))))")
-    List<Event> findAllPublishStateAvailable(EventStatus state, LocalDateTime rangeStart, Set<Long> categories,
-                                             Boolean paid, String text, Pagination pageable);
+    List<Event> findAllPublishStateAvailable(EventStatus state,
+                                             LocalDateTime rangeStart,
+                                             Set<Long> categories,
+                                             Boolean paid,
+                                             String text,
+                                             Pagination pageable);
 
     @Query("SELECT MIN(e.publishedOn) FROM Event e WHERE e.id IN :eventsId")
-    Optional<LocalDateTime> getStart(List<Long> eventsId);
+    Optional<LocalDateTime> getStart(@Param("eventsId") List<Long> eventsId);
 }

@@ -96,7 +96,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilation(Long compId) {
         return compilationRepository.findById(compId)
-                .orElseThrow(notFoundException("Compilation {compId} not found", compId)
+                .orElseThrow(notFoundException("Compilation {0} not found", compId)
                );
     }
 }

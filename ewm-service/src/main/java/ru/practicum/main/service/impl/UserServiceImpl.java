@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(notFoundException("User with id={userId} hasn't found", userId));
+                .orElseThrow(notFoundException("User with id={0} hasn't found", userId));
         userRepository.deleteById(userId);
     }
 }
