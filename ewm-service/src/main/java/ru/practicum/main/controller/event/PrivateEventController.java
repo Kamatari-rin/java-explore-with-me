@@ -47,14 +47,14 @@ public class PrivateEventController {
     }
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> getEvent(@Positive @PathVariable Long userId,
-                                                 @Positive @PathVariable Long eventId) {
+    public ResponseEntity<EventFullDto> getEvent(@PathVariable @Positive Long userId,
+                                                 @PathVariable @Positive Long eventId) {
         return new ResponseEntity<>(eventService.getOneByUserId(userId, eventId), HttpStatus.OK);
     }
 
     @PatchMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> update(@Positive @PathVariable Long userId,
-                                               @Positive @PathVariable Long eventId,
+    public ResponseEntity<EventFullDto> update(@PathVariable @Positive Long userId,
+                                               @PathVariable @Positive Long eventId,
                                                @RequestBody @Valid UpdateEventDto dto) {
         return new ResponseEntity<>(eventService.updateByUser(userId, eventId, dto), HttpStatus.OK);
     }
@@ -68,8 +68,8 @@ public class PrivateEventController {
     }
 
     @GetMapping("/{eventId}/requests")
-    public ResponseEntity<List<ParticipationRequestDto>> getRequests(@Positive @PathVariable Long userId,
-                                                                     @Positive @PathVariable Long eventId) {
+    public ResponseEntity<List<ParticipationRequestDto>> getRequests(@PathVariable @Positive Long userId,
+                                                                     @PathVariable @Positive Long eventId) {
         return new ResponseEntity<>(requestService.getParticipationRequestPrivate(userId, eventId), HttpStatus.OK);
     }
 }

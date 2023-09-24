@@ -31,8 +31,7 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 import static ru.practicum.main.entity.enums.EventStatus.*;
-import static ru.practicum.main.entity.enums.StateAction.PUBLISH_EVENT;
-import static ru.practicum.main.entity.enums.StateAction.REJECT_EVENT;
+import static ru.practicum.main.entity.enums.StateAction.*;
 import static ru.practicum.main.exception.NotFoundException.notFoundException;
 
 @Service
@@ -184,7 +183,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventFullDto updateByUser(Long userId, Long eventId, UpdateEventDto updateEventRequestDto) {
+    public EventFullDto updateByUser(Long userId, Long eventId, UpdateEventDto dto) {
         getUserOrThrowException(userId);
         Event event = getEventOrThrowException(eventId);
 
@@ -194,7 +193,16 @@ public class EventServiceImpl implements EventService {
 
         validateEventDate(event.getEventDate());
 
-        updateEventFields(event, updateEventRequestDto);
+        updateEventFields(event, dto);
+
+        if (dto.getStateAction() != null) {
+            if (dto.getStateAction().equals(CANCEL_REVIEW)) {
+                event.setState(CANCELED);
+            }
+            if (dto.getStateAction().equals(SEND_TO_REVIEW)) {
+                event.setState(PENDING);
+            }
+        }
 
         Event savedEvent = eventRepository.save(event);
         locationRepository.save(savedEvent.getLocation());
