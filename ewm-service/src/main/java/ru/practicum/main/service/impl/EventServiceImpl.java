@@ -1,13 +1,13 @@
 package ru.practicum.main.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.GetStatsDto;
+import ru.practicum.dto.HitRequestDto;
 import ru.practicum.main.dto.event.EventFullDto;
 import ru.practicum.main.dto.event.EventShortDto;
 import ru.practicum.main.dto.event.NewEventDto;
@@ -15,6 +15,8 @@ import ru.practicum.main.dto.request.UpdateEventDto;
 import ru.practicum.main.entity.*;
 import ru.practicum.main.entity.enums.EventSort;
 import ru.practicum.main.entity.enums.EventStatus;
+import ru.practicum.main.entity.enums.RequestStatus;
+import ru.practicum.main.entity.enums.StateAction;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.mapper.EventMapper;
 import ru.practicum.main.mapper.LocationMapper;
@@ -28,15 +30,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ru.practicum.main.entity.enums.EventStatus.*;
-import static ru.practicum.main.entity.enums.RequestStatus.CONFIRMED;
-import static ru.practicum.main.entity.enums.StateAction.*;
 import static ru.practicum.main.exception.NotFoundException.notFoundException;
+
+;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-@Slf4j
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
@@ -64,27 +64,26 @@ public class EventServiceImpl implements EventService {
                                                Integer from,
                                                Integer size) {
         List<Event> events = eventRepository.findAllForAdmin(
-                userIds, states, categoryIds, rangeStart, new Pagination(from, size, Sort.unsorted()));
+                userIds, states, categoryIds, rangeStart, rangeEnd, new Pagination(from, size, Sort.unsorted()));
         return mapToEventFullDto(events);
     }
 
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventDto dto) {
         Event event = getEventOrThrowException(eventId);
-        log.info(event.toString());
 
         if (dto.getStateAction() != null) {
-            if (dto.getStateAction().equals(PUBLISH_EVENT)) {
-                if (!event.getState().equals(PENDING)) {
+            if (dto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
+                if (!event.getState().equals(EventStatus.PENDING)) {
                     throw new ValidationException(String.format("Event %s has already been published", eventId));
                 }
-                event.setState(PUBLISHED);
+                event.setState(EventStatus.PUBLISHED);
                 event.setPublishedOn(LocalDateTime.now());
             } else {
-                if (!event.getState().equals(PENDING)) {
+                if (!event.getState().equals(EventStatus.PENDING)) {
                     throw new ValidationException("Event must be in PENDING status");
                 }
-                event.setState(CANCELED);
+                event.setState(EventStatus.CANCELED);
             }
         }
 
@@ -93,13 +92,7 @@ public class EventServiceImpl implements EventService {
                     " no earlier than one hour from the publication date");
         }
 
-        log.info(event.toString());
-
         updateEventFields(event, dto);
-
-        log.info(event.toString());
-
-        eventRepository.save(event);
         locationRepository.save(event.getLocation());
 
         return mapToEventFullDto(List.of(event)).get(0);
@@ -126,10 +119,10 @@ public class EventServiceImpl implements EventService {
             throw new ValidationException("RangeStart cannot be later than rangeEnd");
         }
 
-        List<Event> events = eventRepository.findAllPublishStateAvailable(PUBLISHED, rangeStart,
+        List<Event> events = eventRepository.findAllPublishStateAvailable(EventStatus.PUBLISHED, rangeStart,
                 categoriesIds, paid, text, new Pagination(from, size, Sort.unsorted()));
 
-        statsClient.saveStats(app, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
+        sendStats(request.getRequestURI(), request.getRemoteAddr());
 
         return mapToEventShortDto(events);
     }
@@ -138,11 +131,11 @@ public class EventServiceImpl implements EventService {
     @Transactional(readOnly = true)
     public EventFullDto getEventByIdPublic(Long eventId, HttpServletRequest request) {
         Event event = getEventOrThrowException(eventId);
-        if (!event.getState().equals(PUBLISHED)) {
+        if (!event.getState().equals(EventStatus.PUBLISHED)) {
             throw new NotFoundException(String.format("Event %s not published", eventId));
         }
 
-        statsClient.saveStats(app, request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
+        sendStats(request.getRequestURI(), request.getRemoteAddr());
         return mapToEventFullDto(List.of(event)).get(0);
     }
 
@@ -158,7 +151,7 @@ public class EventServiceImpl implements EventService {
                 locationMapper.toLocation(newEventDto.getLocation())
         );
 
-        Event event = eventMapper.toEvent(newEventDto, location, category, PENDING, user);
+        Event event = eventMapper.toEvent(newEventDto, location, category, EventStatus.PENDING, user);
         event.setCreatedOn(LocalDateTime.now());
 
         return eventMapper.toEventFullDto(
@@ -188,7 +181,7 @@ public class EventServiceImpl implements EventService {
         getUserOrThrowException(userId);
         Event event = getEventOrThrowException(eventId);
 
-        if (event.getState().equals(PUBLISHED)) {
+        if (event.getState().equals(EventStatus.PUBLISHED)) {
             throw new ValidationException("Only canceled events or events pending moderation can be changed");
         }
 
@@ -197,11 +190,11 @@ public class EventServiceImpl implements EventService {
         updateEventFields(event, dto);
 
         if (dto.getStateAction() != null) {
-            if (dto.getStateAction().equals(CANCEL_REVIEW)) {
-                event.setState(CANCELED);
+            if (dto.getStateAction().equals(StateAction.CANCEL_REVIEW)) {
+                event.setState(EventStatus.CANCELED);
             }
-            if (dto.getStateAction().equals(SEND_TO_REVIEW)) {
-                event.setState(PENDING);
+            if (dto.getStateAction().equals(StateAction.SEND_TO_REVIEW)) {
+                event.setState(EventStatus.PENDING);
             }
         }
 
@@ -230,35 +223,35 @@ public class EventServiceImpl implements EventService {
         );
     }
 
-    private void updateEventFields(Event event, UpdateEventDto updateEventRequest) {
-        if (updateEventRequest.getAnnotation() != null && !updateEventRequest.getAnnotation().isBlank()) {
-            event.setAnnotation(updateEventRequest.getAnnotation());
+    private void updateEventFields(Event event, UpdateEventDto dto) {
+        if (dto.getAnnotation() != null && !dto.getAnnotation().isBlank()) {
+            event.setAnnotation(dto.getAnnotation());
         }
-        if (updateEventRequest.getDescription() != null && !updateEventRequest.getDescription().isBlank()) {
-            event.setDescription(updateEventRequest.getDescription());
-        }
-        if (updateEventRequest.getCategory() != null) {
-            Category category = getCategoryOrThrowException(updateEventRequest.getCategory());
+        if (dto.getCategory() != null) {
+            Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(() ->
+                    new NotFoundException(String.format("Category %s not found", dto.getCategory())));
             event.setCategory(category);
         }
-        if (updateEventRequest.getPaid() != null) {
-            event.setPaid(updateEventRequest.getPaid());
+        if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
+            event.setDescription(dto.getDescription());
         }
-        if (updateEventRequest.getParticipantLimit() != null) {
-            event.setParticipantLimit(updateEventRequest.getParticipantLimit());
+        if (dto.getEventDate() != null) {
+            event.setEventDate(dto.getEventDate());
         }
-        if (updateEventRequest.getRequestModeration() != null) {
-            event.setRequestModeration(updateEventRequest.getRequestModeration());
+        if (dto.getLocation() != null) {
+            event.setLocation(locationMapper.toLocation(dto.getLocation()));
         }
-        if (updateEventRequest.getTitle() != null && !updateEventRequest.getTitle().isBlank()) {
-            event.setTitle(updateEventRequest.getTitle());
+        if (dto.getPaid() != null) {
+            event.setPaid(dto.getPaid());
         }
-        if (updateEventRequest.getLocation() != null) {
-            event.setLocation(locationMapper.toLocation(updateEventRequest.getLocation()));
+        if (dto.getParticipantLimit() != null) {
+            event.setParticipantLimit(dto.getParticipantLimit());
         }
-        if (updateEventRequest.getEventDate() != null) {
-            validateEventDate(updateEventRequest.getEventDate());
-            event.setEventDate(updateEventRequest.getEventDate());
+        if (dto.getRequestModeration() != null) {
+            event.setRequestModeration(dto.getRequestModeration());
+        }
+        if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
+            event.setTitle(dto.getTitle());
         }
     }
 
@@ -279,8 +272,6 @@ public class EventServiceImpl implements EventService {
 
         Map<Long, Integer> eventsViews = getViews(eventIds);
         Map<Long, Integer> confirmedRequests = getConfirmedRequests(eventIds);
-
-        log.info("ConfirmedRequests: " + confirmedRequests.toString());
 
         dtos.forEach(event -> {
             event.setViews(eventsViews.getOrDefault(event.getId(), 0));
@@ -322,7 +313,7 @@ public class EventServiceImpl implements EventService {
 
         if (start.isPresent()) {
             List<GetStatsDto> response = statsClient
-                    .getStats(start.get(), LocalDateTime.now(), uris, true).getBody();
+                    .getStats(start.get(), LocalDateTime.now(), uris, true);
 
             response.forEach(dto -> {
                 String uri = dto.getUri();
@@ -340,12 +331,23 @@ public class EventServiceImpl implements EventService {
 
     private Map<Long, Integer> getConfirmedRequests(Collection<Long> eventsId) {
         List<Request> confirmedRequests = requestRepository
-                .findAllByStatusAndEventIdIn(CONFIRMED, eventsId);
-        log.info("ConfirmedRequests: " + confirmedRequests.toString());
+                .findAllByStatusAndEventIdIn(RequestStatus.CONFIRMED, eventsId);
+
         return confirmedRequests.stream()
                 .collect(Collectors.groupingBy(request -> request.getEvent().getId()))
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size()));
+    }
+
+    private void sendStats(String uri, String ip) {
+        HitRequestDto endpointHitRequestDto = HitRequestDto.builder()
+                .app(app)
+                .uri(uri)
+                .ip(ip)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        statsClient.createHit(endpointHitRequestDto);
     }
 }

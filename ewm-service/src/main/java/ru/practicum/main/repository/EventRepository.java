@@ -1,6 +1,5 @@
 package ru.practicum.main.repository;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,19 +22,33 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     Optional<Event> findByIdAndInitiatorId(Long initiatorId, Long eventId);
 
-    @Query("SELECT event " +
-           "FROM Event AS event " +
-           "JOIN FETCH event.initiator " +
-           "JOIN FETCH event.category " +
-           "WHERE event.eventDate > :rangeStart " +
-           "AND (event.category.id IN :categories OR :categories IS NULL) " +
-           "AND (event.initiator.id IN :users OR :users IS NULL) " +
-           "AND (event.state IN :states OR :states IS NULL)")
-    List<Event> findAllForAdmin(@Param("users") List<Long> users,
-                                @Param("states") List<EventStatus> states,
-                                @Param("categories") List<Long> categories,
-                                @Param("rangeStart") LocalDateTime rangeStart,
-                                PageRequest pageable);
+//    @Query("SELECT e " +
+//            "FROM Event AS e " +
+//            "JOIN FETCH e.initiator " +
+//            "JOIN FETCH e.category " +
+//            "WHERE e.eventDate > :rangeStart " +
+//            "AND (e.category.id IN :categories OR :categories IS NULL) " +
+//            "AND (e.initiator.id IN :users OR :users IS NULL) " +
+//            "AND (e.state IN :states OR :states IS NULL)"
+//    )
+//    List<Event> findAllForAdmin(@Param("users") List<Long> users,
+//                                @Param("states") List<EventStatus> states,
+//                                @Param("categories") List<Long> categories,
+//                                @Param("rangeStart") LocalDateTime rangeStart,
+//                                Pagination pageable);
+
+    @Query("select e from Event e " +
+            "where (coalesce(:userIds, null) is null or e.initiator.id in :userIds) " +
+            "and (coalesce(:states, null) is null or e.state in :states) " +
+            "and (coalesce(:categoryIds, null) is null or e.category.id in :categoryIds) " +
+            "and (coalesce(:rangeStart, null) is null or e.eventDate >= :rangeStart) " +
+            "and (coalesce(:rangeEnd, null) is null or e.eventDate <= :rangeEnd) ")
+    List<Event> findAllForAdmin(@Param("userIds") Collection<Long> userIds,
+                            @Param("states") Collection<EventStatus> states,
+                            @Param("categoryIds") Collection<Long> categoryIds,
+                            @Param("rangeStart") LocalDateTime rangeStart,
+                            @Param("rangeEnd") LocalDateTime rangeEnd,
+                            Pageable pageable);
 
     @Query("SELECT event " +
            "FROM Event AS event " +
