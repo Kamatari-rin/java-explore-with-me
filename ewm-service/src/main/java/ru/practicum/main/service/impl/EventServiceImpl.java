@@ -70,7 +70,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventDto dto) {
-        Event event = getEventOrThrowException(eventId);
+        Event event = eventRepository.findById(eventId).orElseThrow(() ->
+                new NotFoundException(String.format("Event %s not found", eventId)));
 
         if (dto.getStateAction() != null) {
             if (dto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
@@ -86,7 +87,6 @@ public class EventServiceImpl implements EventService {
                 event.setState(EventStatus.CANCELED);
             }
         }
-
         if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
             throw new ValidationException("The start date of the modified event must be" +
                     " no earlier than one hour from the publication date");
@@ -270,11 +270,11 @@ public class EventServiceImpl implements EventService {
                 .map(eventMapper::toEventFullDto)
                 .collect(Collectors.toList());
 
-        Map<Long, Integer> eventsViews = getViews(eventIds);
+//        Map<Long, Integer> eventsViews = getViews(eventIds);
         Map<Long, Integer> confirmedRequests = getConfirmedRequests(eventIds);
 
         dtos.forEach(event -> {
-            event.setViews(eventsViews.getOrDefault(event.getId(), 0));
+//            event.setViews(eventsViews.getOrDefault(event.getId(), 0));
             event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0));
         });
 
