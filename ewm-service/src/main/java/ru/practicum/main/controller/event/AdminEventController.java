@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.dto.event.EventFullDto;
 import ru.practicum.main.dto.request.UpdateEventDto;
@@ -22,25 +23,26 @@ import static ru.practicum.constant.Constants.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/events")
+@Validated
 public class AdminEventController {
 
     private final EventService eventService;
 
     @GetMapping
     public ResponseEntity<List<EventFullDto>> getEvents(
-            @RequestParam(defaultValue = PAGE_INDEX_FROM) @PositiveOrZero Integer from,
-            @RequestParam(defaultValue = PAGE_INDEX_SIZE) @Positive Integer size,
+            @RequestParam(required = false) Set<Long> users,
+            @RequestParam(required = false) Set<Long> categories,
+            @RequestParam(required = false) List<EventStatus> states,
             @RequestParam(required = false) @DateTimeFormat(pattern = TIMESTAMP_PATTERN) LocalDateTime rangeStart,
             @RequestParam(required = false) @DateTimeFormat(pattern = TIMESTAMP_PATTERN) LocalDateTime rangeEnd,
-            @RequestParam(required = false) List<EventStatus> states,
-            @RequestParam(required = false) Set<Long> users,
-            @RequestParam(required = false) Set<Long> categories) {
+            @RequestParam(defaultValue = PAGE_INDEX_FROM) @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = PAGE_INDEX_SIZE) @Positive Integer size) {
         return new ResponseEntity<>(eventService.getEventsByAdmin(
                 users, categories, states, rangeStart, rangeEnd, from, size), HttpStatus.OK);
     }
 
     @PatchMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> update(@Positive @PathVariable Long eventId,
+    public ResponseEntity<EventFullDto> update(@PathVariable @Positive Long eventId,
                                                @RequestBody @Valid UpdateEventDto dto) {
         return new ResponseEntity<>(eventService.updateEventByAdmin(eventId, dto), HttpStatus.OK);
     }

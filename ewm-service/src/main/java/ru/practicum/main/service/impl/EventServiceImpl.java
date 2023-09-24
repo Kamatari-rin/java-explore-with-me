@@ -65,7 +65,7 @@ public class EventServiceImpl implements EventService {
                                                Integer from,
                                                Integer size) {
         List<Event> events = eventRepository.findAllForAdmin(
-                userIds, categoryIds, states, rangeStart, new Pagination(from, size, Sort.unsorted()));
+                userIds, states, categoryIds, rangeStart, new Pagination(from, size, Sort.unsorted()));
         return mapToEventFullDto(events);
     }
 
