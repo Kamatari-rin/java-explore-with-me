@@ -22,8 +22,8 @@ public interface EventService {
 
     EventFullDto updateByUser(Long userId, Long eventId, UpdateEventDto dto);
 
-    List<EventFullDto> getEventsByAdmin(Set<Long> userIds,
-                                        Set<Long> categoryIds,
+    List<EventFullDto> getEventsByAdmin(List<Long> userIds,
+                                        List<Long> categoryIds,
                                         List<EventStatus> states,
                                         LocalDateTime rangeStart,
                                         LocalDateTime rangeEnd,

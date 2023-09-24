@@ -1,6 +1,7 @@
 package ru.practicum.main.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import static ru.practicum.main.exception.NotFoundException.notFoundException;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
@@ -54,8 +56,8 @@ public class EventServiceImpl implements EventService {
 ///////////////////////////////////////////////// ADMIN SERVICE ////////////////////////////////////////////////////////
 
     @Override
-    public List<EventFullDto> getEventsByAdmin(Set<Long> userIds,
-                                               Set<Long> categoryIds,
+    public List<EventFullDto> getEventsByAdmin(List<Long> userIds,
+                                               List<Long> categoryIds,
                                                List<EventStatus> states,
                                                LocalDateTime rangeStart,
                                                LocalDateTime rangeEnd,
@@ -69,6 +71,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventDto dto) {
         Event event = getEventOrThrowException(eventId);
+        log.info(event.toString());
 
         if (dto.getStateAction() != null) {
             if (dto.getStateAction().equals(PUBLISH_EVENT)) {
@@ -90,7 +93,11 @@ public class EventServiceImpl implements EventService {
                     " no earlier than one hour from the publication date");
         }
 
+        log.info(event.toString());
+
         updateEventFields(event, dto);
+
+        log.info(event.toString());
 
         eventRepository.save(event);
         locationRepository.save(event.getLocation());
@@ -271,11 +278,13 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         Map<Long, Integer> eventsViews = getViews(eventIds);
-        Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
+        Map<Long, Integer> confirmedRequests = getConfirmedRequests(eventIds);
+
+        log.info("ConfirmedRequests: " + confirmedRequests.toString());
 
         dtos.forEach(event -> {
             event.setViews(eventsViews.getOrDefault(event.getId(), 0));
-            event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0L));
+            event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0));
         });
 
         return dtos;
@@ -291,11 +300,11 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         Map<Long, Integer> eventsViews = getViews(eventIds);
-        Map<Long, Long> confirmedRequests = getConfirmedRequests(eventIds);
+        Map<Long, Integer> confirmedRequests = getConfirmedRequests(eventIds);
 
         dtos.forEach(event -> {
             event.setViews(eventsViews.getOrDefault(event.getId(), 0));
-            event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0L));
+            event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0));
         });
 
         return dtos;
@@ -329,14 +338,14 @@ public class EventServiceImpl implements EventService {
         return views;
     }
 
-    private Map<Long, Long> getConfirmedRequests(Collection<Long> eventsId) {
+    private Map<Long, Integer> getConfirmedRequests(Collection<Long> eventsId) {
         List<Request> confirmedRequests = requestRepository
                 .findAllByStatusAndEventIdIn(CONFIRMED, eventsId);
-
+        log.info("ConfirmedRequests: " + confirmedRequests.toString());
         return confirmedRequests.stream()
                 .collect(Collectors.groupingBy(request -> request.getEvent().getId()))
                 .entrySet()
                 .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> (long) e.getValue().size()));
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().size()));
     }
 }

@@ -5,7 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.GetStatsDto;
-import ru.practicum.entity.HitEntity;
+import ru.practicum.dto.HitRequestDto;
+import ru.practicum.mapper.HitMapper;
 import ru.practicum.repository.HitRepository;
 
 import java.time.LocalDateTime;
@@ -19,19 +20,16 @@ import java.util.Set;
 public class HitServiceImpl implements HitService {
 
     private final HitRepository hitRepository;
+    private final HitMapper hitMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetStatsDto> getStats(LocalDateTime start, LocalDateTime end, Set<String> uriSet, boolean unique) {
-        if (unique) {
-            return hitRepository.findStatsBetweenTimestampUniqUri(uriSet, start, end);
-        } else {
-            return hitRepository.findStatsBetweenTimestampNotUniqUri(uriSet, start, end);
-        }
+    public List<GetStatsDto> getStats(LocalDateTime start, LocalDateTime end, Set<String> uriSet, Boolean unique) {
+        return hitRepository.getStats(uriSet, start, end, unique);
     }
 
     @Override
-    public void save(HitEntity hitEntity) {
-        hitRepository.save(hitEntity);
+    public void save(HitRequestDto dto) {
+        hitRepository.save(hitMapper.toHitEntity(dto));
     }
 }

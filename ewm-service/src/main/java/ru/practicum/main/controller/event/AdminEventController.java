@@ -16,13 +16,12 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import static ru.practicum.constant.Constants.*;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/admin/events")
+@RequiredArgsConstructor
 @Validated
 public class AdminEventController {
 
@@ -30,8 +29,8 @@ public class AdminEventController {
 
     @GetMapping
     public ResponseEntity<List<EventFullDto>> getEvents(
-            @RequestParam(required = false) Set<Long> users,
-            @RequestParam(required = false) Set<Long> categories,
+            @RequestParam(required = false) List<Long> users,
+            @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) List<EventStatus> states,
             @RequestParam(required = false) @DateTimeFormat(pattern = TIMESTAMP_PATTERN) LocalDateTime rangeStart,
             @RequestParam(required = false) @DateTimeFormat(pattern = TIMESTAMP_PATTERN) LocalDateTime rangeEnd,
@@ -42,7 +41,7 @@ public class AdminEventController {
     }
 
     @PatchMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> update(@PathVariable @Positive Long eventId,
+    public ResponseEntity<EventFullDto> update(@PathVariable(value = "eventId") @Positive Long eventId,
                                                @RequestBody @Valid UpdateEventDto dto) {
         return new ResponseEntity<>(eventService.updateEventByAdmin(eventId, dto), HttpStatus.OK);
     }
