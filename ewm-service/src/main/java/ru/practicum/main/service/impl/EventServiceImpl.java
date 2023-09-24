@@ -14,7 +14,6 @@ import ru.practicum.main.dto.request.UpdateEventDto;
 import ru.practicum.main.entity.*;
 import ru.practicum.main.entity.enums.EventSort;
 import ru.practicum.main.entity.enums.EventStatus;
-import ru.practicum.main.entity.enums.RequestStatus;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.mapper.EventMapper;
 import ru.practicum.main.mapper.LocationMapper;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 import static ru.practicum.main.entity.enums.EventStatus.*;
+import static ru.practicum.main.entity.enums.RequestStatus.CONFIRMED;
 import static ru.practicum.main.entity.enums.StateAction.*;
 import static ru.practicum.main.exception.NotFoundException.notFoundException;
 
@@ -56,7 +56,6 @@ public class EventServiceImpl implements EventService {
 ///////////////////////////////////////////////// ADMIN SERVICE ////////////////////////////////////////////////////////
 
     @Override
-    @Transactional(readOnly = true)
     public List<EventFullDto> getEventsByAdmin(Set<Long> userIds,
                                                Set<Long> categoryIds,
                                                List<EventStatus> states,
@@ -72,31 +71,27 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventDto dto) {
         Event event = getEventOrThrowException(eventId);
-        updateEventFields(event, dto);
 
         if (dto.getStateAction() != null) {
-            if (event.getState().equals(PENDING)) {
-                if (dto.getStateAction().equals(PUBLISH_EVENT)) {
-                    event.setState(PUBLISHED);
-                    event.setPublishedOn(LocalDateTime.now());
+            if (dto.getStateAction().equals(PUBLISH_EVENT)) {
+                if (!event.getState().equals(PENDING)) {
+                    throw new ValidationException(String.format("Event %s has already been published", eventId));
                 }
-                if (dto.getStateAction().equals(REJECT_EVENT)) {
-                    event.setState(CANCELED);
-                }
+                event.setState(PUBLISHED);
+                event.setPublishedOn(LocalDateTime.now());
             } else {
-                throw new ValidationException(
-                        "Cannot publish or cancel the event because it's not in the right state: " + event.getState()
-                );
+                if (!event.getState().equals(PENDING)) {
+                    throw new ValidationException("Event must be in PENDING status");
+                }
+                event.setState(CANCELED);
             }
+        }
+        if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
+            throw new ValidationException("The start date of the modified event must be" +
+                    " no earlier than one hour from the publication date");
         }
 
-        if (dto.getEventDate() != null && event.getState().equals(PUBLISHED)) {
-            if (dto.getEventDate().isAfter(event.getPublishedOn().plusHours(1))) {
-                event.setEventDate(dto.getEventDate());
-            } else {
-                throw new ValidationException("The event date must be at least 1 hour after the published date.");
-            }
-        }
+        updateEventFields(event, dto);
 
         eventRepository.save(event);
         locationRepository.save(event.getLocation());
@@ -262,7 +257,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void validateEventDate(LocalDateTime eventDate) {
-        if (eventDate.isBefore(LocalDateTime.now().plusHours(1))) {
+        if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
             throw new ValidationException("Event date should be in future.");
         }
     }
@@ -338,7 +333,7 @@ public class EventServiceImpl implements EventService {
 
     private Map<Long, Long> getConfirmedRequests(Collection<Long> eventsId) {
         List<Request> confirmedRequests = requestRepository
-                .findAllByStatusAndEventIdIn(RequestStatus.CONFIRMED, eventsId);
+                .findAllByStatusAndEventIdIn(CONFIRMED, eventsId);
 
         return confirmedRequests.stream()
                 .collect(Collectors.groupingBy(request -> request.getEvent().getId()))
