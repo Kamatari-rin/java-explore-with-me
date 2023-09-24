@@ -9,6 +9,7 @@ import ru.practicum.dto.GetStatsDto;
 import ru.practicum.dto.HitRequestDto;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -20,12 +21,14 @@ public class StatsClient {
         this.client = WebClient.create(baseUrl);
     }
 
-    public ResponseEntity<List<GetStatsDto>> getStats(String start, String end, List<String> uris, Boolean unique) {
+    public ResponseEntity<List<GetStatsDto>> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        String dateStart = start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String dateEnd = end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         return this.client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/stats")
-                        .queryParam("start", start)
-                        .queryParam("end", end)
+                        .queryParam("start", dateStart)
+                        .queryParam("end", dateEnd)
                         .queryParam("uris", uris)
                         .queryParam("unique", unique)
                         .build())

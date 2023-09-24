@@ -24,11 +24,9 @@ import ru.practicum.main.util.Pagination;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 import static ru.practicum.main.entity.enums.EventStatus.*;
 import static ru.practicum.main.entity.enums.RequestStatus.CONFIRMED;
 import static ru.practicum.main.entity.enums.StateAction.*;
@@ -86,6 +84,7 @@ public class EventServiceImpl implements EventService {
                 event.setState(CANCELED);
             }
         }
+
         if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
             throw new ValidationException("The start date of the modified event must be" +
                     " no earlier than one hour from the publication date");
@@ -313,12 +312,10 @@ public class EventServiceImpl implements EventService {
         Map<Long, Integer> views = new HashMap<>();
 
         if (start.isPresent()) {
-            List<GetStatsDto> statsResponse = statsClient.getStats(
-                    start.get().format(DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)),
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN)),
-                    uris, true).getBody();
+            List<GetStatsDto> response = statsClient
+                    .getStats(start.get(), LocalDateTime.now(), uris, true).getBody();
 
-            statsResponse.forEach(dto -> {
+            response.forEach(dto -> {
                 String uri = dto.getUri();
                 String[] split = uri.split("/");
                 String id = split[2];
@@ -328,6 +325,7 @@ public class EventServiceImpl implements EventService {
         } else {
             eventsId.forEach(el -> views.put(el, 0));
         }
+
         return views;
     }
 
