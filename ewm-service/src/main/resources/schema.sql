@@ -42,12 +42,12 @@ CREATE TABLE IF NOT EXISTS events (
     request_moderation BOOLEAN DEFAULT true                                    NOT NULL,
     title              VARCHAR(120)                                            NOT NULL,
     initiator_id       BIGINT                                                  NOT NULL,
-    state              VARCHAR(10) DEFAULT 'PENDING'                           NOT NULL,
+    state              VARCHAR(9) DEFAULT 'PENDING'                            NOT NULL,
     created_on         TIMESTAMP WITHOUT TIME ZONE                             NOT NULL,
     published_on       TIMESTAMP WITHOUT TIME ZONE,
     CONSTRAINT PK_EVENT                PRIMARY KEY (id),
-    CONSTRAINT FK_EVENTS_ON_CATEGORIES FOREIGN KEY (category_id)  REFERENCES categories (id) ON DELETE NO ACTION,
-    CONSTRAINT FK_EVENTS_ON_LOCATIONS  FOREIGN KEY (location_id)  REFERENCES locations  (id),
+    CONSTRAINT FK_EVENTS_ON_CATEGORIES FOREIGN KEY (category_id)  REFERENCES categories (id) ON DELETE CASCADE,
+    CONSTRAINT FK_EVENTS_ON_LOCATIONS  FOREIGN KEY (location_id)  REFERENCES locations  (id) ON DELETE CASCADE,
     CONSTRAINT FK_EVENTS_ON_USERS      FOREIGN KEY (initiator_id) REFERENCES users      (id) ON DELETE CASCADE
 );
 

@@ -71,30 +71,32 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventDto dto) {
-        Event event = eventRepository.findById(eventId).orElseThrow(() ->
-                new NotFoundException(String.format("Event %s not found", eventId)));
+        Event event = getEventOrThrowException(eventId);
+        updateEventFields(event, dto);
 
         if (dto.getStateAction() != null) {
-            if (dto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
-                if (!event.getState().equals(EventStatus.PENDING)) {
-                    throw new NotAvailableException(String.format("Event %s has already been published", eventId));
+            if (event.getState().equals(EventStatus.PENDING)) {
+                if (dto.getStateAction().equals(StateAction.REJECT_EVENT)) {
+                    event.setState(EventStatus.CANCELED);
                 }
-                event.setState(EventStatus.PUBLISHED);
-                event.setPublishedOn(LocalDateTime.now());
+                if (dto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
+                    event.setState(EventStatus.PUBLISHED);
+                    event.setPublishedOn(LocalDateTime.now());
+                }
             } else {
-                if (!event.getState().equals(EventStatus.PENDING)) {
-                    throw new NotAvailableException("Event must be in PENDING status");
-                }
-                event.setState(EventStatus.CANCELED);
+                throw new NotAvailableException("Cannot publish or cancel the event because it's not in the right state: "
+                        + event.getState());
             }
         }
 
-        if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
-            throw new NotAvailableException("The start date of the modified event must be" +
-                    " no earlier than one hour from the publication date");
+        if (dto.getEventDate() != null && event.getState().equals(EventStatus.PUBLISHED)) {
+            if (dto.getEventDate().isAfter(event.getPublishedOn().plusHours(1))) {
+                event.setEventDate(dto.getEventDate());
+            } else {
+                throw new ValidationException("The event date must be at least 1 hour after the published date.");
+            }
         }
 
-        updateEventFields(event, dto);
         locationRepository.save(event.getLocation());
         return mapToEventFullDto(List.of(event)).get(0);
     }
