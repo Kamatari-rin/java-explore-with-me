@@ -42,7 +42,7 @@ public class UpdateEventDto {
 
     private Boolean requestModeration;
 
-    @Size(max = 100, min = 10)
+    @Size(max = 120, min = 3)
     private String title;
 
     private StateAction stateAction;
