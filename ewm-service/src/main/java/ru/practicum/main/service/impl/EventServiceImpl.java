@@ -144,6 +144,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto save(Long userId, NewEventDto newEventDto) {
+        validateEventDate(newEventDto.getEventDate());
         User user = getUserOrThrowException(userId);
         Category category = getCategoryOrThrowException(newEventDto.getCategory());
         Location location = locationRepository.save(
@@ -263,11 +264,11 @@ public class EventServiceImpl implements EventService {
                 .map(eventMapper::toEventFullDto)
                 .collect(Collectors.toList());
 
-//        Map<Long, Integer> eventsViews = getViews(eventIds);
+        Map<Long, Integer> eventsViews = getViews(eventIds);
         Map<Long, Integer> confirmedRequests = getConfirmedRequests(eventIds);
 
         dtos.forEach(event -> {
-//            event.setViews(eventsViews.getOrDefault(event.getId(), 0));
+            event.setViews(eventsViews.getOrDefault(event.getId(), 0));
             event.setConfirmedRequests(confirmedRequests.getOrDefault(event.getId(), 0));
         });
 

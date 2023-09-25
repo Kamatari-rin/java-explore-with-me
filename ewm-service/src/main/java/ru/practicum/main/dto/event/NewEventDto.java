@@ -10,6 +10,7 @@ import ru.practicum.main.dto.location.LocationDtoCoordinates;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
@@ -21,12 +22,14 @@ import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 public class NewEventDto {
 
     @NotBlank
+    @Size(min = 20, max = 2000)
     private String annotation;
 
     @NotNull
     private Long category;
 
     @NotBlank
+    @Size(min = 20, max = 7000)
     private String description;
 
     @NotNull
@@ -44,5 +47,6 @@ public class NewEventDto {
     private Boolean requestModeration = true;
 
     @NotBlank
+    @Size(min = 3, max = 120)
     private String title;
 }
