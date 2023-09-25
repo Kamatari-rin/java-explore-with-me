@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.GetStatsDto;
 import ru.practicum.dto.HitRequestDto;
+import ru.practicum.dto.HitResponseDto;
 import ru.practicum.service.HitService;
 
 import javax.validation.Valid;
@@ -34,8 +35,7 @@ public class StatsServerController {
     }
 
     @PostMapping("/hit")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void saveHit(@RequestBody @Valid HitRequestDto dto) {
-        hitService.save(dto);
+    public ResponseEntity<HitResponseDto> save(@RequestBody @Valid HitRequestDto hit) {
+        return new ResponseEntity<>(hitService.save(hit), HttpStatus.CREATED);
     }
 }
