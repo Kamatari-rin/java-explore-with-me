@@ -1,6 +1,7 @@
-package ru.practicum.main.controller.exception;
+package ru.practicum.main.controller.error;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -8,6 +9,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.practicum.main.exception.AlreadyExistsException;
+import ru.practicum.main.exception.ApiError;
+import ru.practicum.main.exception.NotAvailableException;
 import ru.practicum.main.exception.NotFoundException;
 
 import javax.validation.ConstraintViolation;
@@ -27,13 +31,13 @@ public class ErrorHandler {
         return createErrorResponse(e, HttpStatus.NOT_FOUND);
     }
 
-//    @ExceptionHandler({AlreadyExistsException.class, NotAvailableException.class,
-//            DataIntegrityViolationException.class})
-//    @ResponseStatus(HttpStatus.CONFLICT)
-//    public ApiError handleConflict(final RuntimeException e) {
-//        log.debug("Получен статус 409 Conflict {}", e.getMessage(), e);
-//        return createErrorResponse(e, HttpStatus.CONFLICT);
-//    }
+    @ExceptionHandler({AlreadyExistsException.class, NotAvailableException.class,
+            DataIntegrityViolationException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleConflict(final RuntimeException e) {
+        log.debug("Получен статус 409 Conflict {}", e.getMessage(), e);
+        return createErrorResponse(e, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler({ValidationException.class, MethodArgumentTypeMismatchException.class,
             MethodArgumentNotValidException.class, MissingServletRequestParameterException.class})

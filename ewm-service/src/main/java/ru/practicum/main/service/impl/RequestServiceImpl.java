@@ -11,6 +11,7 @@ import ru.practicum.main.entity.Request;
 import ru.practicum.main.entity.User;
 import ru.practicum.main.entity.enums.EventStatus;
 import ru.practicum.main.entity.enums.RequestStatus;
+import ru.practicum.main.exception.NotAvailableException;
 import ru.practicum.main.mapper.RequestMapper;
 import ru.practicum.main.repository.EventRepository;
 import ru.practicum.main.repository.RequestRepository;
@@ -20,8 +21,6 @@ import ru.practicum.main.service.RequestService;
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,17 +53,17 @@ public class RequestServiceImpl implements RequestService {
         Event event = getEventOrThrowException(eventId);
 
         if (event.getInitiator().getId().equals(userId)) {
-            throw new ValidationException("Event initiator cannot add a request to participate in their event");
+            throw new NotAvailableException("Event initiator cannot add a request to participate in their event");
         }
         if (!event.getState().equals(EventStatus.PUBLISHED)) {
-            throw new ValidationException("It isn't possible participate if event isn't published.");
+            throw new NotAvailableException("It isn't possible participate if event isn't published.");
         }
 
         Long confirmedRequests = requestRepository.countAllByEventIdAndStatus(eventId,
                 RequestStatus.CONFIRMED);
 
         if (event.getParticipantLimit() <= confirmedRequests && event.getParticipantLimit() != 0) {
-            throw new ValidationException("Limit of requests for participation has been exceeded");
+            throw new NotAvailableException("Limit of requests for participation has been exceeded");
         }
 
         Request request = Request.builder()
@@ -101,11 +100,9 @@ public class RequestServiceImpl implements RequestService {
     public List<ParticipationRequestDto> getParticipationRequestPrivate(Long userId, Long eventId) {
         getUserOrThrowException(userId);
         getEventOrThrowException(eventId);
-        if (eventRepository.findByIdAndInitiatorId(eventId, userId).isPresent()) {
-            return requestRepository.findAllByEventId(eventId).stream()
+        return requestRepository.findAllByEventId(eventId).stream()
                     .map(requestMapper::toParticipationRequestDto)
                     .collect(Collectors.toList());
-        } else return Collections.emptyList();
     }
 
     @Override
@@ -114,15 +111,14 @@ public class RequestServiceImpl implements RequestService {
                                                                              EventRequestStatusUpdateRequestDto dto) {
         getUserOrThrowException(userId);
         Event event = getEventOrThrowException(eventId);
-        Long confirmedRequests = requestRepository.countAllByEventIdAndStatus(eventId,
-                RequestStatus.CONFIRMED);
+        Long confirmedRequests = requestRepository.countAllByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
 
         Long freePlaces = event.getParticipantLimit() - confirmedRequests;
 
         RequestStatus status = RequestStatus.valueOf(String.valueOf(dto.getStatus()));
 
         if (status.equals(RequestStatus.CONFIRMED) && freePlaces <= 0) {
-            throw new ValidationException("The limit of requests to participate in the event has been reached");
+            throw new NotAvailableException("The limit of requests to participate in the event has been reached");
         }
 
         List<Request> requests = requestRepository.findAllByEventIdAndEventInitiatorIdAndIdIn(eventId,
@@ -164,11 +160,11 @@ public class RequestServiceImpl implements RequestService {
                 );
     }
 
-    private void setStatus(Collection<Request> requests, RequestStatus status, long freePlaces) {
+    private void setStatus(List<Request> requests, RequestStatus status, Long freePlaces) {
         if (status.equals(RequestStatus.CONFIRMED)) {
             for (Request request : requests) {
                 if (!request.getStatus().equals(RequestStatus.PENDING)) {
-                    throw new ValidationException("Request's status has to be PENDING");
+                    throw new NotAvailableException("Request's status has to be PENDING");
                 }
                 if (freePlaces > 0) {
                     request.setStatus(RequestStatus.CONFIRMED);
@@ -180,12 +176,12 @@ public class RequestServiceImpl implements RequestService {
         } else if (status.equals(RequestStatus.REJECTED)) {
             requests.forEach(request -> {
                 if (!request.getStatus().equals(RequestStatus.PENDING)) {
-                    throw new ValidationException("Request's status has to be PENDING");
+                    throw new NotAvailableException("Request's status has to be PENDING");
                 }
                 request.setStatus(RequestStatus.REJECTED);
             });
         } else {
-            throw new ValidationException("You must either approve - CONFIRMED" +
+            throw new NotAvailableException("You must either approve - CONFIRMED" +
                     " or reject - REJECTED the application");
         }
     }

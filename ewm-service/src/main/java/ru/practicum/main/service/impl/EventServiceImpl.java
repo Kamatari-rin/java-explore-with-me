@@ -17,6 +17,7 @@ import ru.practicum.main.entity.enums.EventSort;
 import ru.practicum.main.entity.enums.EventStatus;
 import ru.practicum.main.entity.enums.RequestStatus;
 import ru.practicum.main.entity.enums.StateAction;
+import ru.practicum.main.exception.NotAvailableException;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.mapper.EventMapper;
 import ru.practicum.main.mapper.LocationMapper;
@@ -73,28 +74,28 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId).orElseThrow(() ->
                 new NotFoundException(String.format("Event %s not found", eventId)));
 
+        if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
+            throw new NotAvailableException("The start date of the modified event must be" +
+                    " no earlier than one hour from the publication date");
+        }
+
         if (dto.getStateAction() != null) {
             if (dto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
                 if (!event.getState().equals(EventStatus.PENDING)) {
-                    throw new ValidationException(String.format("Event %s has already been published", eventId));
+                    throw new NotAvailableException(String.format("Event %s has already been published", eventId));
                 }
                 event.setState(EventStatus.PUBLISHED);
                 event.setPublishedOn(LocalDateTime.now());
             } else {
                 if (!event.getState().equals(EventStatus.PENDING)) {
-                    throw new ValidationException("Event must be in PENDING status");
+                    throw new NotAvailableException("Event must be in PENDING status");
                 }
                 event.setState(EventStatus.CANCELED);
             }
         }
-        if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
-            throw new ValidationException("The start date of the modified event must be" +
-                    " no earlier than one hour from the publication date");
-        }
 
         updateEventFields(event, dto);
         locationRepository.save(event.getLocation());
-
         return mapToEventFullDto(List.of(event)).get(0);
     }
 
@@ -144,12 +145,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto save(Long userId, NewEventDto newEventDto) {
         User user = getUserOrThrowException(userId);
-
         Category category = getCategoryOrThrowException(newEventDto.getCategory());
-
         Location location = locationRepository.save(
-                locationMapper.toLocation(newEventDto.getLocation())
-        );
+                locationMapper.toLocation(newEventDto.getLocation()));
 
         Event event = eventMapper.toEvent(newEventDto, location, category, EventStatus.PENDING, user);
         event.setCreatedOn(LocalDateTime.now());
@@ -172,8 +170,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto getOneByUserId(Long userId, Long eventId) {
         getUserOrThrowException(userId);
         return mapToEventFullDto(
-                List.of(getEventOrThrowException(eventId)))
-                .get(0);
+                List.of(getEventOrThrowException(eventId))).get(0);
     }
 
     @Override
@@ -182,10 +179,8 @@ public class EventServiceImpl implements EventService {
         Event event = getEventOrThrowException(eventId);
 
         if (event.getState().equals(EventStatus.PUBLISHED)) {
-            throw new ValidationException("Only canceled events or events pending moderation can be changed");
+            throw new NotAvailableException("Only canceled events or events pending moderation can be changed");
         }
-
-        validateEventDate(event.getEventDate());
 
         updateEventFields(event, dto);
 
@@ -198,9 +193,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        Event savedEvent = eventRepository.save(event);
-        locationRepository.save(savedEvent.getLocation());
-        return mapToEventFullDto(List.of(savedEvent)).get(0);
+        return mapToEventFullDto(List.of(event)).get(0);
     }
 
 ///////////////////////////////////////////////// UTILITY METHODS //////////////////////////////////////////////////////
