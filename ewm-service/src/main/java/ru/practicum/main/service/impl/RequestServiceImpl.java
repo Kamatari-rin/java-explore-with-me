@@ -11,6 +11,7 @@ import ru.practicum.main.entity.Request;
 import ru.practicum.main.entity.User;
 import ru.practicum.main.entity.enums.EventStatus;
 import ru.practicum.main.entity.enums.RequestStatus;
+import ru.practicum.main.exception.AlreadyExistsException;
 import ru.practicum.main.exception.NotAvailableException;
 import ru.practicum.main.mapper.RequestMapper;
 import ru.practicum.main.repository.EventRepository;
@@ -57,6 +58,10 @@ public class RequestServiceImpl implements RequestService {
         }
         if (!event.getState().equals(EventStatus.PUBLISHED)) {
             throw new NotAvailableException("It isn't possible participate if event isn't published.");
+        }
+
+        if (requestRepository.existsByRequesterIdAndEventId(userId, eventId)) {
+            throw new AlreadyExistsException("You can't create same request twice");
         }
 
         Long confirmedRequests = requestRepository.countAllByEventIdAndStatus(eventId,
