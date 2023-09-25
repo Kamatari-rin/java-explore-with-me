@@ -74,11 +74,6 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId).orElseThrow(() ->
                 new NotFoundException(String.format("Event %s not found", eventId)));
 
-        if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
-            throw new NotAvailableException("The start date of the modified event must be" +
-                    " no earlier than one hour from the publication date");
-        }
-
         if (dto.getStateAction() != null) {
             if (dto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
                 if (!event.getState().equals(EventStatus.PENDING)) {
@@ -92,6 +87,11 @@ public class EventServiceImpl implements EventService {
                 }
                 event.setState(EventStatus.CANCELED);
             }
+        }
+
+        if (event.getPublishedOn() != null && event.getEventDate().isBefore(event.getPublishedOn().plusHours(1))) {
+            throw new NotAvailableException("The start date of the modified event must be" +
+                    " no earlier than one hour from the publication date");
         }
 
         updateEventFields(event, dto);
