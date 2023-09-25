@@ -1,6 +1,7 @@
 package ru.practicum.main.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,7 +11,6 @@ import ru.practicum.main.entity.Category;
 import ru.practicum.main.exception.NotAvailableException;
 import ru.practicum.main.mapper.CategoryMapper;
 import ru.practicum.main.repository.CategoryRepository;
-import ru.practicum.main.repository.EventRepository;
 import ru.practicum.main.service.CategoryService;
 import ru.practicum.main.util.Pagination;
 
@@ -25,7 +25,6 @@ import static ru.practicum.main.exception.NotFoundException.notFoundException;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final EventRepository eventRepository;
     private final CategoryMapper categoryMapper;
 
     @Override
@@ -54,7 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto update(Long catId, CategoryDto categoryDto) {
-        Category category = getCategory(catId);
+        Category category = getCategoryOrThrowException(catId);
 
         category.setName(categoryDto.getName());
 
@@ -65,17 +64,16 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Boolean delete(Long catId) {
-        Category category = getCategory(catId);
-
-        if (eventRepository.existsByCategoryId(catId)) {
-            throw new NotAvailableException(String.format("Category %s isn't empty", catId));
-        } else {
-            categoryRepository.delete(category);
+        getCategoryOrThrowException(catId);
+        try {
+            categoryRepository.deleteById(catId);
             return true;
+        } catch (DataIntegrityViolationException e) {
+            throw new NotAvailableException("The category isn't empty");
         }
     }
 
-    private Category getCategory(Long catId) {
+    private Category getCategoryOrThrowException(Long catId) {
         return categoryRepository.findById(catId)
                 .orElseThrow(notFoundException("Category with id={0} hasn't found", catId)
         );
