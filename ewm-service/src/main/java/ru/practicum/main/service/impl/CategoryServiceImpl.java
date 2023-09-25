@@ -7,12 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.dto.category.CategoryDto;
 import ru.practicum.main.dto.category.NewCategoryDto;
 import ru.practicum.main.entity.Category;
+import ru.practicum.main.exception.NotAvailableException;
 import ru.practicum.main.mapper.CategoryMapper;
 import ru.practicum.main.repository.CategoryRepository;
+import ru.practicum.main.repository.EventRepository;
 import ru.practicum.main.service.CategoryService;
 import ru.practicum.main.util.Pagination;
 
-import javax.validation.ValidationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ import static ru.practicum.main.exception.NotFoundException.notFoundException;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final EventRepository eventRepository;
     private final CategoryMapper categoryMapper;
 
     @Override
@@ -65,11 +67,11 @@ public class CategoryServiceImpl implements CategoryService {
     public Boolean delete(Long catId) {
         Category category = getCategory(catId);
 
-        try {
+        if (eventRepository.existsByCategoryId(catId)) {
+            throw new NotAvailableException(String.format("Category %s isn't empty", catId));
+        } else {
             categoryRepository.delete(category);
             return true;
-        } catch (Exception e) {
-            throw new ValidationException("The category isn't empty");
         }
     }
 

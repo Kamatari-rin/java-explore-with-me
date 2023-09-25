@@ -20,8 +20,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findAllByIdIn(Collection<Long> eventsId);
 
-    Optional<Event> findByIdAndInitiatorId(Long initiatorId, Long eventId);
-
 //    @Query("SELECT e " +
 //            "FROM Event AS e " +
 //            "JOIN FETCH e.initiator " +
@@ -75,4 +73,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("SELECT MIN(e.publishedOn) FROM Event e WHERE e.id IN :eventsId")
     Optional<LocalDateTime> getStart(@Param("eventsId") List<Long> eventsId);
+
+    boolean existsByCategoryId(Long catId);
 }
