@@ -61,7 +61,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = getCommentOrThrowException(commentId);
 
         if (!comment.getAuthor().getId().equals(user.getId())) {
-            throw new ValidationException(String.format("User %s isn't author of comment %s ", authorId, commentId));
+            throw new SecurityException(String.format("User %s isn't author of comment %s ", authorId, commentId));
         }
 
         comment.setContent(dto.getContent());
@@ -85,7 +85,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = getCommentOrThrowException(commentId);
 
         if (!comment.getAuthor().getId().equals(user.getId())) {
-            throw new ValidationException(String.format("User %s isn't author of comment %s", authorId, commentId));
+            throw new SecurityException(String.format("User %s isn't author of comment %s", authorId, commentId));
         }
 
         commentRepository.deleteById(commentId);

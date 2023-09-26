@@ -1,6 +1,7 @@
 package ru.practicum.main.controller.event;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import static ru.practicum.constant.Constants.*;
 @RequestMapping("/admin/events")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class AdminEventController {
 
     private final EventService eventService;
@@ -36,6 +38,7 @@ public class AdminEventController {
             @RequestParam(required = false) @DateTimeFormat(pattern = TIMESTAMP_PATTERN) LocalDateTime rangeEnd,
             @RequestParam(defaultValue = PAGE_INDEX_FROM) @PositiveOrZero Integer from,
             @RequestParam(defaultValue = PAGE_INDEX_SIZE) @Positive Integer size) {
+        log.info("Get events of users {} with states {}, categories {}", users, states, categories);
         return new ResponseEntity<>(eventService.getEventsByAdmin(
                 users, categories, states, rangeStart, rangeEnd, from, size), HttpStatus.OK);
     }
@@ -43,6 +46,7 @@ public class AdminEventController {
     @PatchMapping("/{eventId}")
     public ResponseEntity<EventFullDto> update(@PathVariable @Positive Long eventId,
                                                @RequestBody @Valid UpdateEventDto dto) {
+        log.info("Update event {} with id= {}", dto, eventId);
         return new ResponseEntity<>(eventService.updateEventByAdmin(eventId, dto), HttpStatus.OK);
     }
 }

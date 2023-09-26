@@ -39,7 +39,7 @@ public class ErrorHandler {
         return createErrorResponse(e, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler({ValidationException.class, MethodArgumentTypeMismatchException.class,
+    @ExceptionHandler({ValidationException.class, SecurityException.class, MethodArgumentTypeMismatchException.class,
             MethodArgumentNotValidException.class, MissingServletRequestParameterException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequest(final RuntimeException e) {

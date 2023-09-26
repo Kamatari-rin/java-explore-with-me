@@ -1,6 +1,7 @@
 package ru.practicum.main.controller.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,18 +22,21 @@ import static ru.practicum.constant.Constants.PAGE_INDEX_SIZE;
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
 @Validated
+@Slf4j
 public class AdminUserController {
 
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDto> saveUser(@RequestBody @Valid NewUserRequestDto newUserRequestDto) {
-        return new ResponseEntity<>(userService.create(newUserRequestDto), HttpStatus.CREATED);
+    public ResponseEntity<UserDto> save(@RequestBody @Valid NewUserRequestDto dto) {
+        log.info("Create user with id= {}", dto);
+        return new ResponseEntity<>(userService.create(dto), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUserById(@PathVariable @Positive Long userId) {
+    public void delete(@PathVariable @Positive Long userId) {
+        log.info("Delete user with id= {}", userId);
         userService.delete(userId);
     }
 
@@ -40,6 +44,7 @@ public class AdminUserController {
     public ResponseEntity<List<UserDto>> getUsers(@RequestParam(required = false) Set<Long> ids,
                                                   @RequestParam(defaultValue = PAGE_INDEX_FROM) Integer from,
                                                   @RequestParam(defaultValue = PAGE_INDEX_SIZE) Integer size) {
+        log.info("Get all users with ids: {}", ids);
         return new ResponseEntity<>(userService.getUsers(ids, from, size), HttpStatus.OK);
     }
 }

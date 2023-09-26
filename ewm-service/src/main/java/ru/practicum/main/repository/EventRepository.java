@@ -20,21 +20,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findAllByIdIn(Collection<Long> eventsId);
 
-//    @Query("SELECT e " +
-//            "FROM Event AS e " +
-//            "JOIN FETCH e.initiator " +
-//            "JOIN FETCH e.category " +
-//            "WHERE e.eventDate > :rangeStart " +
-//            "AND (e.category.id IN :categories OR :categories IS NULL) " +
-//            "AND (e.initiator.id IN :users OR :users IS NULL) " +
-//            "AND (e.state IN :states OR :states IS NULL)"
-//    )
-//    List<Event> findAllForAdmin(@Param("users") List<Long> users,
-//                                @Param("states") List<EventStatus> states,
-//                                @Param("categories") List<Long> categories,
-//                                @Param("rangeStart") LocalDateTime rangeStart,
-//                                Pagination pageable);
-
     @Query("select e from Event e " +
             "where (coalesce(:userIds, null) is null or e.initiator.id in :userIds) " +
             "and (coalesce(:states, null) is null or e.state in :states) " +

@@ -1,6 +1,7 @@
 package ru.practicum.main.controller.compilation;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +20,7 @@ import static ru.practicum.constant.Constants.PAGE_INDEX_SIZE;
 @RequiredArgsConstructor
 @RequestMapping("/compilations")
 @Validated
+@Slf4j
 public class PublicCompilationController {
 
     private final CompilationService compilationService;
@@ -28,11 +30,13 @@ public class PublicCompilationController {
                 @RequestParam(defaultValue = PAGE_INDEX_FROM) @PositiveOrZero Integer from,
                 @RequestParam(defaultValue = PAGE_INDEX_SIZE) @Positive Integer size,
                 @RequestParam(required = false) Boolean pinned) {
+        log.info("Get compilations pinned {}", pinned);
         return new ResponseEntity<>(compilationService.getAll(pinned, from, size), HttpStatus.OK);
     }
 
     @GetMapping("/{compId}")
     public ResponseEntity<CompilationDto> getById(@Positive @PathVariable Long compId) {
+        log.info("Get compilation with id= {}", compId);
         return new ResponseEntity<>(compilationService.getById(compId), HttpStatus.OK);
     }
 }
