@@ -5,10 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
 import javax.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 
 import static ru.practicum.constant.Constants.TIMESTAMP_PATTERN;
 
@@ -28,6 +27,5 @@ public class HitRequestDto {
     private String ip;
 
     @JsonFormat(pattern = TIMESTAMP_PATTERN)
-    @DateTimeFormat(pattern = TIMESTAMP_PATTERN)
     private LocalDateTime timestamp;
 }

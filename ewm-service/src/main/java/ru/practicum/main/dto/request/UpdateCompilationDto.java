@@ -5,17 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Size;
 import java.util.Set;
 
 @Data
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateCompilationRequest {
+public class UpdateCompilationDto {
 
-    private Set<Long> events;
+    @Size(min = 1, max = 50)
+    private String title;
 
     private Boolean pinned;
 
-    private String title;
+    private Set<Long> events;
 }

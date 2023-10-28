@@ -1,18 +1,19 @@
 package ru.practicum.main.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.dto.category.CategoryDto;
 import ru.practicum.main.dto.category.NewCategoryDto;
 import ru.practicum.main.entity.Category;
+import ru.practicum.main.exception.NotAvailableException;
 import ru.practicum.main.mapper.CategoryMapper;
 import ru.practicum.main.repository.CategoryRepository;
 import ru.practicum.main.service.CategoryService;
 import ru.practicum.main.util.Pagination;
 
-import javax.validation.ValidationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,13 +47,13 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getById(Long catId) {
         return categoryMapper.toCategoryDto(
                 categoryRepository.findById(catId)
-                        .orElseThrow(notFoundException("Category with id={catId} hasn't found", catId))
+                        .orElseThrow(notFoundException("Category with id={0} hasn't found", catId))
         );
     }
 
     @Override
     public CategoryDto update(Long catId, CategoryDto categoryDto) {
-        Category category = getCategory(catId);
+        Category category = getCategoryOrThrowException(catId);
 
         category.setName(categoryDto.getName());
 
@@ -63,19 +64,18 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Boolean delete(Long catId) {
-        Category category = getCategory(catId);
-
+        getCategoryOrThrowException(catId);
         try {
-            categoryRepository.delete(category);
+            categoryRepository.deleteById(catId);
             return true;
-        } catch (Exception e) {
-            throw new ValidationException("The category isn't empty");
+        } catch (DataIntegrityViolationException e) {
+            throw new NotAvailableException("The category isn't empty");
         }
     }
 
-    private Category getCategory(Long catId) {
+    private Category getCategoryOrThrowException(Long catId) {
         return categoryRepository.findById(catId)
-                .orElseThrow(notFoundException("Category with id={catId} hasn't found", catId)
+                .orElseThrow(notFoundException("Category with id={0} hasn't found", catId)
         );
     }
 }

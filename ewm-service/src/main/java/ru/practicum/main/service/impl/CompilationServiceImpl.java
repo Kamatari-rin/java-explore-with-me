@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.dto.compilation.CompilationDto;
 import ru.practicum.main.dto.compilation.NewCompilationDto;
-import ru.practicum.main.dto.request.UpdateCompilationRequest;
+import ru.practicum.main.dto.request.UpdateCompilationDto;
 import ru.practicum.main.entity.Compilation;
 import ru.practicum.main.entity.Event;
 import ru.practicum.main.mapper.CompilationMapper;
@@ -32,10 +32,17 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationMapper compilationMapper;
 
     @Override
-    public CompilationDto save(NewCompilationDto newCompilationDto) {
-        Compilation compilation = compilationMapper.toCompilation(newCompilationDto);
+    public CompilationDto save(NewCompilationDto dto) {
+        Compilation compilation = compilationMapper.toCompilation(dto);
 
-        Set<Long> eventsId = newCompilationDto.getEvents();
+        if (dto.getPinned() != null) {
+            compilation.setPinned(dto.getPinned());
+        } else {
+            compilation.setPinned(false);
+        }
+
+        Set<Long> eventsId = dto.getEvents();
+
         if (eventsId != null) {
             Set<Event> events = new HashSet<>(eventRepository.findAllByIdIn(eventsId));
             compilation.setEvents(events);
@@ -47,7 +54,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public CompilationDto update(Long compId, UpdateCompilationRequest updateDto) {
+    public CompilationDto update(Long compId, UpdateCompilationDto updateDto) {
         Compilation updatedCompilation = getCompilation(compId);
 
         if (updateDto.getTitle() != null && !updateDto.getTitle().isBlank()) {
@@ -96,7 +103,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     private Compilation getCompilation(Long compId) {
         return compilationRepository.findById(compId)
-                .orElseThrow(notFoundException("Compilation {compId} not found", compId)
+                .orElseThrow(notFoundException("Compilation {0} not found", compId)
                );
     }
 }
